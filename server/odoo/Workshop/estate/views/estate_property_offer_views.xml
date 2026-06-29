@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="estate_property_offer_action" model="ir.actions.act_window">
+        <field name="name">Offers</field>
+        <field name="res_model">estate.property.offer</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="estate_property_offer_view_tree" model="ir.ui.view">
+        <field name="name">estate.property.offer.tree</field>
+        <field name="model">estate.property.offer</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="price" widget="monetary"/>
+                <field name="partner_id"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'accepted'"
+                       decoration-danger="status == 'refused'"/>
+                <field name="validity"/>
+                <field name="date_deadline"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_property_offer_view_form" model="ir.ui.view">
+        <field name="name">estate.property.offer.form</field>
+        <field name="model">estate.property.offer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_accept" string="Accept" type="object"
+                            class="btn-primary" invisible="status != 'draft'"/>
+                    <button name="action_refuse" string="Refuse" type="object"
+                            invisible="status != 'draft'"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="price" widget="monetary"/>
+                            <field name="partner_id"/>
+                            <field name="property_id"/>
+                        </group>
+                        <group>
+                            <field name="validity"/>
+                            <field name="date_deadline"/>
+                            <field name="create_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
