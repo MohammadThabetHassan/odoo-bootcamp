@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ai_task_user,ai.task user,model_ai_task,base.group_user,1,1,1,0
+access_ai_task_manager,ai.task manager,model_ai_task,base.group_system,1,1,1,1
+access_ai_generated_file_user,ai.generated.file user,model_ai_generated_file,base.group_user,1,0,0,0
+access_ai_generated_file_manager,ai.generated.file manager,model_ai_generated_file,base.group_system,1,1,1,1
+access_ai_prompt_template_manager,ai.prompt.template,model_ai_prompt_template,base.group_system,1,1,1,1

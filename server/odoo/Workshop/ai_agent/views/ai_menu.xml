@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AI Agent Menu -->
+    <menuitem id="ai_agent_menu" name="AI Agent" icon="fa-robot"/>
+
+    <!-- Dashboard -->
+    <menuitem id="ai_dashboard_menu" name="Dashboard" parent="ai_agent_menu" action="ai_task_action" sequence="1"/>
+
+    <!-- Tasks -->
+    <menuitem id="ai_tasks_menu" name="Tasks" parent="ai_agent_menu" sequence="2"/>
+    
+    <action id="ai_task_action" name="AI Tasks" res_model="ai.task" type="ir.actions.act_window" 
+            view_mode="kanban,tree,form" view_id="ai_task_kanban_view" sequence="10"/>
+</odoo>

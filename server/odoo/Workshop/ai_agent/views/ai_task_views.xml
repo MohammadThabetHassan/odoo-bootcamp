@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AI Task List View -->
+    <record id="ai_task_tree_view" model="ir.ui.view">
+        <field name="name">AI Task List</field>
+        <field name="model">ai.task</field>
+        <field name="arch" type="xml">
+            <tree sample="1">
+                <field name="name"/>
+                <field name="task_type"/>
+                <field name="status"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="tokens_used" optional="show"/>
+                <field name="execution_time" optional="show"/>
+                <field name="create_date" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- AI Task Form View -->
+    <record id="ai_task_form_view" model="ir.ui.view">
+        <field name="name">AI Task</field>
+        <field name="model">ai.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_execute_task" type="object" string="Execute Task" 
+                            class="btn-primary" states="draft"/>
+                    <button name="action_view_generated_files" type="object" string="View Generated Files"
+                            states="completed"/>
+                    <field name="status" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Task name..."/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="task_type"/>
+                            <field name="created_user_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="module_generated" readonly="1"/>
+                            <field name="progress" widget="percentpie" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Task Description -->
+                        <page string="Description">
+                            <field name="task_description" nolabel="1" placeholder="Describe what you want to create..."/>
+                        </page>
+
+                        <!-- Claude Response -->
+                        <page string="Claude Response" attrs="{'invisible': [('claude_response', '=', '')]}">
+                            <field name="claude_response" nolabel="1" readonly="1" widget="text"/>
+                        </page>
+
+                        <!-- Generated Code -->
+                        <page string="Generated Code" attrs="{'invisible': [('generated_code', '=', '')]}">
+                            <field name="generated_code" nolabel="1" readonly="1" widget="text"/>
+                        </page>
+
+                        <!-- Generated Files -->
+                        <page string="Files" attrs="{'invisible': [('generated_file_ids', '=', [])]}">
+                            <field name="generated_file_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="filename"/>
+                                    <field name="file_type"/>
+                                    <field name="status"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Execution Log -->
+                        <page string="Execution Log" attrs="{'invisible': [('execution_log', '=', '')]}">
+                            <group>
+                                <field name="tokens_used" readonly="1"/>
+                                <field name="execution_time" readonly="1"/>
+                            </group>
+                            <field name="execution_log" nolabel="1" readonly="1" widget="text"/>
+                        </page>
+
+                        <!-- Errors -->
+                        <page string="Errors" attrs="{'invisible': [('error_message', '=', '')]}">
+                            <field name="error_message" nolabel="1" readonly="1" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- AI Task Kanban View -->
+    <record id="ai_task_kanban_view" model="ir.ui.view">
+        <field name="name">AI Task Kanban</field>
+        <field name="model">ai.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="status"/>
+                <field name="progress"/>
+                <field name="task_type"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <h4>
+                                    <a type="open" class="oe_kanban_action_a">
+                                        <field name="name"/>
+                                    </a>
+                                </h4>
+                                <div>
+                                    <strong>Type:</strong>
+                                    <field name="task_type"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge" t-attf-class="badge-{{ 'success' if record.status.raw_value == 'completed' else 'warning' if record.status.raw_value == 'processing' else 'danger' if record.status.raw_value == 'error' else 'secondary' }}">
+                                        <field name="status"/>
+                                    </span>
+                                </div>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar" t-attf-style="width: {{ record.progress.value }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- AI Task Search View -->
+    <record id="ai_task_search_view" model="ir.ui.view">
+        <field name="name">AI Task Search</field>
+        <field name="model">ai.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Task" filter_domain="['|', ('name', 'ilike', self), ('task_description', 'ilike', self)]"/>
+                <filter name="draft" string="Draft" domain="[('status', '=', 'draft')]"/>
+                <filter name="processing" string="Processing" domain="[('status', '=', 'processing')]"/>
+                <filter name="completed" string="Completed" domain="[('status', '=', 'completed')]"/>
+                <filter name="error" string="Error" domain="[('status', '=', 'error')]"/>
+                <separator/>
+                <filter name="my_tasks" string="My Tasks" domain="[('created_user_id', '=', uid)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_by_task_type" string="Task Type" context="{'group_by': 'task_type'}"/>
+                    <filter name="group_by_user" string="Created By" context="{'group_by': 'created_user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Generated File List View -->
+    <record id="ai_generated_file_tree_view" model="ir.ui.view">
+        <field name="name">Generated File List</field>
+        <field name="model">ai.generated.file</field>
+        <field name="arch" type="xml">
+            <tree sample="1">
+                <field name="filename"/>
+                <field name="file_type"/>
+                <field name="status"/>
+                <field name="task_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Generated File Form View -->
+    <record id="ai_generated_file_form_view" model="ir.ui.view">
+        <field name="name">Generated File</field>
+        <field name="model">ai.generated.file</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="filename" readonly="1"/>
+                        <field name="file_type" readonly="1"/>
+                        <field name="task_id" readonly="1"/>
+                    </group>
+                    <field name="content" nolabel="1" readonly="1" widget="text" class="font-monospace"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
